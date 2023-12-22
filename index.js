@@ -1,4 +1,4 @@
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const express = require('express');
 const cors = require('cors');
 const app = express();
@@ -8,11 +8,12 @@ const port = process.env.PORT || 5000
 
 /* Using Middleware */
 app.use(cors({
-    origin: [
-      'http://localhost:5173',
-    ],
-    credentials: true
-  }));
+  origin: [
+    'http://localhost:5173',
+    'https://iridescent-florentine-b98e8c.netlify.app'
+  ],
+  credentials: true
+}));
 app.use(express.json());
 
 
@@ -35,10 +36,44 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
 
-    const currentCollection = client.db("Task-Management-DB").collection('Current-Task');
+    const taskCollection = client.db("Task-Management-DB").collection('Current-Task');
 
-    app.get("/mobiles", async(req,res)=>{
-      result = await mobileCollection.find().toArray();
+    app.post("/create-task", async (req, res) => {
+      let newTask = req.body;
+      let result = await taskCollection.insertOne(newTask);
+      res.send(result);
+    });
+    app.get("/load-task/:email", async (req, res) => {
+      let email = req.params.email;
+      let query = {email : email};
+      let result = await taskCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    app.get('update-task/:id',async(req,res)=>{
+      let id = req.params.id;
+      let query= {_id : new ObjectId(id)};
+      let result = await taskCollection.findOne(query);
+      res.send(result);
+    })
+
+    app.delete('/delete-task/:id', async(req,res)=>{
+      let id = req.params.id;
+      let query = {_id : new ObjectId(id)};
+      let result = await taskCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    app.put('/change-state/:id', async(req,res)=>{
+      let id = req.params.id;
+      let newStatus = req.body;
+      let query = {_id : new ObjectId(id)};
+      let updatedDoc = {
+        $set:{
+          taskStatus: newStatus.status
+        }
+      }
+      let result = await taskCollection.updateOne(query,updatedDoc);
       res.send(result);
     })
 
@@ -51,7 +86,7 @@ async function run() {
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
-    
+
   }
 }
 run().catch(console.dir);
@@ -59,9 +94,9 @@ run().catch(console.dir);
 
 
 app.get('/', (req, res) => {
-  res.send('Mobile is Ordering!')
+  res.send('Task is Managing!')
 })
 
 app.listen(port, () => {
-  console.log(`Mobile App listening on port ${port}`)
+  console.log(`Task Management listening on port ${port}`)
 })
