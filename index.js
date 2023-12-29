@@ -4,7 +4,6 @@ const cors = require('cors');
 const app = express();
 require('dotenv').config();
 let cookieParser = require('cookie-parser');
-let jwt = require('jsonwebtoken');
 const port = process.env.PORT || 5000
 
 /* Using Middleware */
@@ -40,12 +39,12 @@ async function run() {
         const taskCollection = client.db("Task-Management-DB").collection('Current-Task');
 
 
-
         app.post("/create-task",  async (req, res) => {
             let newTask = req.body;
             let result = await taskCollection.insertOne(newTask);
             res.send(result);
         });
+
         app.get("/load-task/:email", async (req, res) => {
             let email = req.params.email;
             let query = { email: email };
