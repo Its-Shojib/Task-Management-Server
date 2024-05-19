@@ -38,13 +38,14 @@ async function run() {
 
         const taskCollection = client.db("Task-Management-DB").collection('Current-Task');
 
-
+        //Create a new Task
         app.post("/create-task",  async (req, res) => {
             let newTask = req.body;
             let result = await taskCollection.insertOne(newTask);
             res.send(result);
         });
 
+        //Load all the Tasks
         app.get("/load-task/:email", async (req, res) => {
             let email = req.params.email;
             let query = { email: email };
@@ -52,13 +53,15 @@ async function run() {
             res.send(result);
         });
 
+        //Update a Task
         app.get('/update-task/:id', async (req, res) => {
             let id = req.params.id;
             let query = { _id: new ObjectId(id) };
             let result = await taskCollection.findOne(query);
             res.send(result);
-        })
+        });
 
+        //Delete a Task
         app.delete('/delete-task/:id',  async (req, res) => {
             let id = req.params.id;
             let query = { _id: new ObjectId(id) };
@@ -66,6 +69,7 @@ async function run() {
             res.send(result);
         });
 
+        //Change the Status of a Task
         app.put('/change-state/:id',  async (req, res) => {
             let id = req.params.id;
             let newStatus = req.body;
@@ -79,6 +83,7 @@ async function run() {
             res.send(result);
         });
 
+        //Update a single task
         app.put('/update-single-task/:id',  async (req, res) => {
             let id = req.params.id;
             let updatedTask = req.body;
